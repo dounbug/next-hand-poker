@@ -44,3 +44,10 @@ button{background:#211517;border-color:#593535}.primary{background:linear-gradie
 .hand-info{background:#261411;border-color:#9f794b;color:#f1d8b0}.bet-panel{border-color:#84513e}.bet-panel-heading label{color:#e8caa1}
 
 .odds-panel{padding:12px 16px}.board-calculator{border:0}.board-calculator summary{padding:4px 0;color:#e4c79d;font-weight:650;font-size:13px}.odds-inputs{display:grid;grid-template-columns:1fr 1.5fr;gap:9px;margin-top:13px}.odds-inputs label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted)}.odds-inputs label:last-child{grid-column:1/-1}.odds-inputs select{width:100%;min-height:36px;border:1px solid #765140;border-radius:6px;background:#160b0e;color:#f2dfc3;padding:5px;font:inherit;font-size:13px}.odds-inputs select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}.board-calculator .odds-answer{font-size:16px;color:#f1d8b0;margin:13px 0 8px;line-height:1.4}.board-calculator small{display:block;color:var(--muted);font-size:11px;line-height:1.5}
+
+/* Keep the board in the clear space between the top seat and the hero. */
+.board{top:50%;transform:translate(-50%,-50%);display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:10px;row-gap:9px;width:max-content;max-width:100%}
+.board .pot-label{grid-column:1;text-align:right}.board .pot-value{grid-column:2;text-align:left;margin:0;font-size:23px;line-height:1.2}
+.board>.cards,.board>.board-caption{grid-column:1/-1;margin:0}.board .pot-label{line-height:1.2}
+.seat-name{overflow-wrap:anywhere}.seat-action{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(min-width:901px) and (max-height:900px){.board{top:50%;row-gap:8px}.board-caption{display:none}.seat-style{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
