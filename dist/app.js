@@ -1,3 +1,4 @@
+import {mountBoardOdds} from './board-odds.js';
 import {createGame,act,legal,botAction,evaluate} from './engine.js';
 import {buildReview} from './review.js';
 import {handStrength} from './hand-strength.js';
@@ -7,6 +8,7 @@ import {winnerHTML,rankingHTML} from './round-result.js';
 import {actionControlsHTML,toggleBetPanel,updateBetPanel} from './bet-sizing.js';
 const $=s=>document.querySelector(s),KEY='next-hand-practice-v1';
 const audio=mountAudio($('#audio-controls'));
+const boardCalculator=mountBoardOdds($('#board-odds'));
 const suits={s:'♠',h:'♥',d:'♦',c:'♣'},suitNames={s:'spades',h:'hearts',d:'diamonds',c:'clubs'},rankNames={T:'10',J:'Jack',Q:'Queen',K:'King',A:'Ace'};
 let strengthRevealed=false,strengthHand=null;
 let game,paused=false,guided=true,timer=null,storageOk=true,error='',restored=false;
@@ -24,6 +26,7 @@ function renderStrength(){
 }
 $('#table').addEventListener('click',e=>{const button=e.target.closest('[data-hand-info]');if(button){strengthRevealed=!strengthRevealed;renderStrength();button.setAttribute('aria-expanded',String(strengthRevealed));}});
 function render(){
+ boardCalculator.update({hole:game.players[0].hole,board:game.board,complete:game.street==='complete'});
  renderStrength();
  clearTimeout(timer);timer=null;const done=game.street==='complete',l=legal(game),hero=game.players[0];
  audio.update({room:'solo',hand:game.hand,street:game.street,actor:game.actor,seat:0,paused,actionCount:game.log.length});

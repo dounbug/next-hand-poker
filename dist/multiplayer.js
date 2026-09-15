@@ -1,3 +1,4 @@
+import {mountBoardOdds} from './board-odds.js';
 import {handStrength} from './hand-strength.js';
 import {mountAudio} from './audio.js';
 import {streetReviewHTML} from './street-review-view.js';
@@ -5,6 +6,7 @@ import {winnerHTML,rankingHTML} from './round-result.js';
 import {actionControlsHTML,toggleBetPanel,updateBetPanel} from './bet-sizing.js';
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const audio=mountAudio($('#audio-controls'));
+const boardCalculator=mountBoardOdds($('#board-odds'));
 const roomParam=new URL(location.href).searchParams.get('room');let inviteOrigin=location.origin;
 let id=roomParam,token=id?localStorage.getItem('poker-room-'+id):null,state=null,painted=-1,busy=false,showStrength=false,lastHand=null,polling=false;
 const suits={s:'♠',h:'♥',d:'♦',c:'♣'};
@@ -26,6 +28,7 @@ $('#table').addEventListener('click',e=>{if(e.target.closest('[data-info]')){sho
 function renderStrength(){const box=$('#strength');box.hidden=!showStrength;if(!showStrength||!state.game)return;const g=state.game,h=handStrength(g.players[state.seat].hole,g.board);box.innerHTML=`<strong>${esc(h.rank)} · percentile ≈ ${h.percentile}</strong><p>${g.board.length?'Current made-hand strength':'Starting-hand strength'}${g.players[state.seat].folded?' · folded cards':''}</p><small>${esc(h.basis)}</small>`;}
 function render(){const g=state.game;$('#join-form').hidden=true;$('#room-lobby').hidden=false;$('#lobby').hidden=!!g;$('#game-ui').hidden=!g;$('#pause').hidden=!g||!state.host;$('#pause').textContent=state.paused?'Resume table':'Pause table';
  if(!g){$('#room-lobby').innerHTML=`<div class="friend-list">${state.members.map(m=>`<div>${esc(m.name)} · ${m.online?'connected':'reconnecting'}</div>`).join('')}</div>${inviteMarkup()}<button data-copy>Copy invite</button>${state.host?`<button class="primary" data-start ${state.members.length<2?'disabled':''}>Start together</button>`:'<p>Waiting for your friend to start.</p>'}`;return;}
+ boardCalculator.update({hole:g.players[state.seat].hole,board:g.board,complete:g.street==='complete'});
  audio.update({room:id,hand:g.hand,street:g.street,actor:g.actor,seat:state.seat,paused:state.paused,actionCount:g.log.length});
  document.title=!state.paused&&g.street!=='complete'&&g.actor===state.seat?'Your turn · Next Hand':'Next Hand · Macau After Hours';
  if(lastHand!==g.hand){showStrength=false;lastHand=g.hand;}renderStrength();$('#hand-number').textContent='Hand '+g.hand;$('#street').textContent=g.street==='complete'?'Hand complete':g.street;$('#room-label').textContent='Shared table';
