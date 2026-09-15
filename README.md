@@ -37,3 +37,7 @@ npm test
 ```
 
 Tests cover hand evaluation, legal betting, side pots, ties, chip conservation, multiplayer card privacy, reconnects, HTTP access, hand-strength comparisons, coaching, sizing controls and audio transitions. HTTP tests open temporary local ports.
+
+## Live betting estimates
+
+On your turn, Suggested play displays an estimated action, a legal size where appropriate, and the reason below the action controls. A browser worker samples 500 runouts using only your cards, the visible board and public chip contributions. It estimates your share of contestable pots against uniformly random opponent hands, including ties and side-pot eligibility, and compares it with the call price. It assumes showdown with no further betting. Position-sensitive starting-hand strength supports modest preflop raises. These are heuristics, not GTO or a model of opponents’ actual betting ranges. Suggestions never place bets automatically.

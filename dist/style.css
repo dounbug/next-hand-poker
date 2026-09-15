@@ -51,3 +51,5 @@ button{background:#211517;border-color:#593535}.primary{background:linear-gradie
 .board>.cards,.board>.board-caption{grid-column:1/-1;margin:0}.board .pot-label{line-height:1.2}
 .seat-name{overflow-wrap:anywhere}.seat-action{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(min-width:901px) and (max-height:900px){.board{top:50%;row-gap:8px}.board-caption{display:none}.seat-style{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+
+.live-advice{padding:12px 14px;margin-top:10px;border:1px solid #92714666;border-radius:9px;background:#1c1010}.live-advice h3{display:flex;align-items:center;gap:10px;font-size:12px;margin:0 0 8px;color:#d8b579}.live-advice h3 span{font-size:9px;letter-spacing:.1em;color:#bba99a}.live-advice strong{font-size:19px;color:#f1d8b0}.live-advice p{font-size:12px;line-height:1.5;margin:6px 0}.live-advice .advice-metrics{color:#e3c9a4}.live-advice small{display:block;font-size:10px;line-height:1.5;color:#bca9a2}

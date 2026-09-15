@@ -1,3 +1,4 @@
+import {createLiveAdvisor} from './live-advice-view.js';
 import {mountBoardOdds} from './board-odds.js';
 import {createGame,act,legal,botAction,evaluate} from './engine.js';
 import {buildReview} from './review.js';
@@ -9,6 +10,7 @@ import {actionControlsHTML,toggleBetPanel,updateBetPanel} from './bet-sizing.js'
 const $=s=>document.querySelector(s),KEY='next-hand-practice-v1';
 const audio=mountAudio($('#audio-controls'));
 const boardCalculator=mountBoardOdds($('#board-odds'));
+const liveAdvisor=createLiveAdvisor();
 const suits={s:'♠',h:'♥',d:'♦',c:'♣'},suitNames={s:'spades',h:'hearts',d:'diamonds',c:'clubs'},rankNames={T:'10',J:'Jack',Q:'Queen',K:'King',A:'Ace'};
 let strengthRevealed=false,strengthHand=null;
 let game,paused=false,guided=true,timer=null,storageOk=true,error='',restored=false;
@@ -63,6 +65,7 @@ function render(){
  $('#decision').innerHTML=`<div class="decision-head"><h2>Your turn.</h2><span class="street-label">${streetName()}</span></div><p class="subtle">Pot: <strong>${n(pot)}</strong> · Your stack: <strong>${n(hero.stack)}</strong><br>${l.canCheck?'Nothing to call — checking costs 0.':`Call <strong>${n(l.call)}</strong> more to stay in.`}${guided&&l.call?`<br>Call price: ${odds}% of the chips you can contest after calling; not your win probability.`:''}</p>${actionControlsHTML(l,pot,game.currentBet,hero)}${error?`<p class="error" role="alert">${error}</p>`:''}`;
 
  }
+ liveAdvisor($('#decision'),game,0,l,!paused&&!done&&game.actor===0);
  save();$('#announcement').textContent=paused?'Practice paused.':done?'Hand complete. Review available.':game.actor===0?`Your turn. ${l.canCheck?'You can check.':`Call ${l.call} to stay in.`}`:`${game.players[game.actor].name} to act.`;
 }
 function takeBot(){if(paused||game.street==='complete'||game.actor===0)return;const b=botAction(game);act(game,b.type,b.amount);render();}

@@ -1,3 +1,4 @@
+import {createLiveAdvisor} from './live-advice-view.js';
 import {mountBoardOdds} from './board-odds.js';
 import {handStrength} from './hand-strength.js';
 import {mountAudio} from './audio.js';
@@ -7,6 +8,7 @@ import {actionControlsHTML,toggleBetPanel,updateBetPanel} from './bet-sizing.js'
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const audio=mountAudio($('#audio-controls'));
 const boardCalculator=mountBoardOdds($('#board-odds'));
+const liveAdvisor=createLiveAdvisor();
 const roomParam=new URL(location.href).searchParams.get('room');let inviteOrigin=location.origin;
 let id=roomParam,token=id?localStorage.getItem('poker-room-'+id):null,state=null,painted=-1,busy=false,showStrength=false,lastHand=null,polling=false;
 const suits={s:'♠',h:'♥',d:'♦',c:'♣'};
@@ -39,6 +41,7 @@ function render(){const g=state.game;$('#join-form').hidden=true;$('#room-lobby'
  else if(g.actor!==state.seat)$('#decision').innerHTML=`<h2>${me.folded?'You folded.':`${esc(g.players[g.actor].name)}’s turn`}</h2><p class="waiting">${me.folded?'Watch the hand finish, then compare the revealed cards.':'Your actions appear when it is your turn.'}</p>`;
  else {const currentBet=g.currentBet??Math.max(...g.players.map(p=>p.bet));$('#decision').innerHTML=`<h2>Your turn</h2><p class="waiting">Pot: <strong>${n(g.pot)}</strong> · Your stack: <strong>${n(me.stack)}</strong><br>${l.canCheck?'Nothing to call — checking costs 0.':`Call <strong>${n(l.call)}</strong> more to stay in.`}</p>${actionControlsHTML(l,g.pot,currentBet,me)}`;}
 
+ liveAdvisor($('#decision'),g,state.seat,l,!state.paused&&g.street!=='complete'&&g.actor===state.seat);
  const review=state.review;$('#review').hidden=!review;if(review){$('#review').innerHTML=`${rankingHTML(review.result,card)}<div class="review compact-review"><h2>Overall play</h2><p><strong>${esc(review.comparison.result)}</strong> · ${n(me.stack-me.startStack)} chips</p><p>${esc(review.overall)}</p><div class="review-sections"><section><h3>What went well</h3><p>${esc(review.wentWell)}</p></section><section><h3>Decisions to revisit</h3><p><strong>${esc(review.cue.title)}</strong></p><p>${esc(review.cue.body)}</p><p>${esc(review.cue.next)}</p></section></div>${streetReviewHTML(review.streets,card)}<p class="small-note">${esc(review.comparison.note)}</p></div>`;}
  $('#players').innerHTML=g.players.map((p,i)=>{const actions=g.log.filter(t=>t.startsWith(p.name+': '));const hand=review?.hands.find(h=>h.name===p.name);return `<li class="player-read ${i===state.seat?'read-you':''}"><div class="read-heading"><strong>${esc(p.name)}</strong><span>${esc(p.style)}</span></div><p class="read-actions">${actions.slice(-2).map(t=>esc(t.slice(p.name.length+2))).join(' · ')||'Waiting to act'}</p>${hand?`<div class="read-result"><span>${hand.hole.map(card).join('')}</span><strong>${esc(hand.rank)}</strong></div><p class="read-insight">${hand.winner?'Won chips':hand.folded?'Folded':'Showdown'}${hand.hypothetical?' · final-board comparison':''}</p>`:''}<details><summary>Actions${hand?.bestFive.length?' & best five':''}</summary><p class="small-note">${actions.map(esc).join('<br>')}</p>${hand?.bestFive.length?`<div class="cards">${hand.bestFive.map(card).join('')}</div>`:''}</details></li>`;}).join('');painted=state.revision;
 }
