@@ -1,3 +1,4 @@
+import {rememberHand,renderHandHistory} from './hand-history.js';
 import {createLiveAdvisor} from './live-advice-view.js';
 import {mountBoardOdds} from './board-odds.js';
 import {createGame,act,legal,botAction,evaluate} from './engine.js';
@@ -13,10 +14,11 @@ const boardCalculator=mountBoardOdds($('#board-odds'));
 const liveAdvisor=createLiveAdvisor();
 const suits={s:'♠',h:'♥',d:'♦',c:'♣'},suitNames={s:'spades',h:'hearts',d:'diamonds',c:'clubs'},rankNames={T:'10',J:'Jack',Q:'Queen',K:'King',A:'Ace'};
 let strengthRevealed=false,strengthHand=null;
+let pastHands=[];
 let game,paused=false,guided=true,timer=null,storageOk=true,error='',restored=false;
-try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.game?.version===1&&saved.game.players?.length===6&&saved.game.deck){game=saved.game;guided=saved.guided!==false;paused=true;restored=true;}}catch{storageOk=false;}
+try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved?.game?.version===1&&saved.game.players?.length===6&&saved.game.deck){game=saved.game;pastHands=Array.isArray(saved.pastHands)?saved.pastHands:[];guided=saved.guided!==false;paused=true;restored=true;}}catch{storageOk=false;}
 if(!game)game=createGame();
-function save(){try{localStorage.setItem(KEY,JSON.stringify({game,paused,guided}));storageOk=true;}catch{storageOk=false;}$('#save-status').textContent=storageOk?'Saved on this device':'Saving unavailable';}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({game,paused,guided,pastHands}));storageOk=true;}catch{storageOk=false;}$('#save-status').textContent=storageOk?'Saved on this device':'Saving unavailable';}
 function card(c,back=false){if(back)return '<span class="card back" aria-label="Face-down card"></span>';if(!c)return '<span class="card empty" aria-hidden="true">·</span>';return `<span class="card ${'hd'.includes(c[1])?'red':''}" aria-label="${rankNames[c[0]]||c[0]} of ${suitNames[c[1]]}"><span>${c[0]==='T'?'10':c[0]}</span><span class="suit">${suits[c[1]]}</span></span>`;}
 const n=x=>x.toLocaleString('en-US');
 const streetName=()=>game.street[0].toUpperCase()+game.street.slice(1);
@@ -39,22 +41,7 @@ function render(){
  const badge=`${i===game.dealer?'<span class="badge" title="Dealer button">D</span>':''}${i===game.smallBlind?'<span class="badge blind" title="Small blind">SB</span>':''}${i===game.bigBlind?'<span class="badge blind" title="Big blind">BB</span>':''}`;
  return `<div class="seat seat-${i} ${p.folded?'folded':''} ${game.actor===i&&!paused?'active':''}" aria-label="${p.name}, ${p.style}, ${p.stack} chips${p.folded?', folded':''}"><div class="cards">${p.hole.map(c=>card(c,!show)).join('')}${i===0?`<button class="hand-info" data-hand-info aria-label="Show hand strength information" aria-expanded="${strengthRevealed}" aria-controls="starting-strength">i</button>`:''}</div><div class="seat-info"><div class="seat-name">${p.name}${badge}</div><div class="seat-style">${i===0?`${Math.round(p.stack/20*10)/10} big blinds`:p.style}</div><div class="stack">${n(p.stack)}</div></div><div class="seat-action">${p.lastAction||' '}</div></div>`;
  }).join('')+`<div class="board"><div class="pot-label">${done?'Pot awarded':'Total pot'}</div><div class="pot-value">${n(done?game.pot:game.players.reduce((a,p)=>a+p.total,0))}</div><div class="cards">${Array.from({length:5},(_,i)=>card(game.board[i])).join('')}</div><p class="board-caption">${done?'Every hand is another repetition.':game.board.length?'Shared cards · make your best five':'Your two cards are private'}</p></div>`;
- const escapeText=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const completedReview=done?buildReview(game):null;
- $('#history').innerHTML=game.players.map((p,i)=>{
-  let street='Pre';const actions=[];
-  for(const entry of game.log){const dealt=entry.match(/^(Flop|Turn|River) dealt\.$/);if(dealt)street=dealt[1];if(entry.startsWith(p.name+': ')){const action=entry.slice(p.name.length+2);if(/^(Fold|Check|Call|Bet|Raise)/.test(action))actions.push({street,action});}}
-  const raises=actions.filter(a=>/^(Bet|Raise)/.test(a.action)).length,calls=actions.filter(a=>/^Call/.test(a.action)).length;
-  const style=raises?'Applied pressure':calls?'Called to continue':p.folded?'Stepped aside':actions.length?'Checked for free':'Waiting to act';
-  const h=completedReview?.hands[i];
-  const aggression=actions.filter(a=>/^(Bet|Raise)/.test(a.action)).at(-1);
-  const count=aggression?({Pre:0,Flop:3,Turn:4,River:5}[aggression.street]):0;
-  const pressureHand=h&&count>=3?evaluate([...p.hole,...game.board.slice(0,count)]).name:null;
-  const insight=pressureHand?`${aggression.street}: applied pressure with ${pressureHand}`:h?(h.folded?'Folded · '+(h.hypothetical?'rank uses final board':'rank at hand end'):h.winner?'Won chips · '+(raises?'bet or raised':'stayed in'):raises?'Bet or raised, but did not win':'Stayed in without winning'):style;
-  return `<li class="player-read ${i===0?'read-you':''}"><div class="read-heading"><strong>${escapeText(p.name)}</strong><span>${escapeText(i===0?'You':p.style)}</span></div><p class="read-actions">${actions.slice(-3).map(a=>`${a.street}: ${escapeText(a.action)}`).join(' · ')||'No voluntary action yet'}</p>${h?`<div class="read-result"><span>${h.hole.map(c=>card(c)).join('')}</span><strong>${h.rank}</strong></div>`:''}<p class="read-insight">${insight}</p>${actions.length>3||h?.bestFive.length?`<details><summary>Details</summary><p>${actions.map(a=>`${a.street}: ${escapeText(a.action)}`).join(' · ')}</p>${h?.bestFive.length?`<div class="cards">${h.bestFive.map(c=>card(c)).join('')}</div>`:''}</details>`:''}</li>`;
- }).join('');
- $('#feed-hand').textContent=`#${game.hand}`;
- $('#feed-status').textContent=paused?'Paused':done?'Hand complete':game.actor===0?'Your turn':`${game.players[game.actor].name} to act`;
+ rememberHand(pastHands,game);renderHandHistory($('#past-hands'),pastHands,c=>card(c));
  if(paused){$('#decision').innerHTML=`<div class="paused"><h2>${restored?'Welcome back.':'Take your time.'}</h2><p>${storageOk?'Your exact hand is saved here. Resume whenever you are ready.':'This hand is paused. Browser storage is unavailable, so closing this page may lose it.'}</p><button class="primary" data-action="resume">Resume hand</button></div>`;}
  else if(done){
  const change=hero.stack-hero.startStack,review=buildReview(game),winning=game.awards.filter(a=>!a.refund);
@@ -88,7 +75,7 @@ $('#help').addEventListener('click',()=>{$('#help-dialog').showModal();});
 $('#close-help').addEventListener('click',()=>{$('#help-dialog').close();});
 $('#reset').addEventListener('click',()=>{paused=true;render();$('#reset-dialog').showModal();});
 $('#cancel-reset').addEventListener('click',()=>{$('#reset-dialog').close();paused=false;render();});
-$('#confirm-reset').addEventListener('click',()=>{$('#reset-dialog').close();game=createGame();paused=false;restored=false;render();});
+$('#confirm-reset').addEventListener('click',()=>{$('#reset-dialog').close();game=createGame();pastHands=[];paused=false;restored=false;render();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!paused){paused=true;render();}});
 window.addEventListener('pagehide',save);
 render();
