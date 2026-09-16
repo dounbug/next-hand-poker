@@ -15,3 +15,7 @@ These are original, simplified heuristic policies. Professional-player reference
 Position-sensitive opening thresholds; suited-connected playability; value re-raises and selected suited-ace blocker re-raises; effective-stack checks for speculative calls; sampled current made-hand comparisons; draw recognition; price-sensitive folds; less multiway bluffing; dry-flop continuation bets; variable pot fractions; occasional checks with value hands. Every returned action is bounded by the engine’s legal sizing and reopening rules.
 
 Bots receive only their own cards, visible board, public chip contributions, position and public action log. They never inspect the actual deck or other hole cards. A small sample of possible opposing hands is used for relative made-hand strength, not full equity or inferred ranges. There is no adaptive player model or solver. Live coaching remains its separately labeled random-hand estimate.
+
+## Gentler Omar setting
+
+Omar now opens a narrower range, raises and bluffs less often, checks more strong hands, uses smaller postflop sizes, and requires an extra margin to call pressure. Overbets are rare. This reduces his pressure; it does not guarantee losses or change the shuffled cards, chip awards, or other bots.

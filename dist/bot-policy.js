@@ -42,11 +42,11 @@ export function chooseBot(s,l,evaluate,rng=Math.random){
  const bluff=continuation||(draw&&s.board.length<5||blocker&&strength<.5)&&rng()<bluffChance;
  const fraction=veryStrong&&!multi&&spr>2&&rng()<cfg.overbet?1.25:wet?.75:s.street==='flop'?.33:.6;
  if(l.canRaise&&((value&&rng()<cfg.aggression&&rng()>cfg.trap)||bluff)){
-  if(l.canCheck||veryStrong||bluff&&draw&&price<.25)return raise(s.currentBet+Math.max(20,(pot+l.call)*fraction));
+  if(l.canCheck||veryStrong||bluff&&draw&&price<.25)return raise(s.currentBet+Math.max(20,(pot+l.call)*fraction*(cfg.betScale??1)));
  }
  if(l.canCheck)return {type:'check'};
  // Draw credit is deliberately conservative: not every improvement is a clean winning out.
  const drawCredit=draw?(s.street==='flop'?.12:.07):0;
- if(share+drawCredit>price+.08+(multi?.07:0)+(facingRaise?.07:0))return {type:'call'};
+ if(share+drawCredit>price+.08+(cfg.callMargin??0)+(multi?.07:0)+(facingRaise?.07:0))return {type:'call'};
  return checkOrFold();
 }
