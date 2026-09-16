@@ -10,7 +10,7 @@ Requires Node.js 18 or newer. No dependencies or build step.
 npm start
 ```
 
-Open http://localhost:4173, choose a table name and select **Open a table**. Send the invite to a friend on the same network. Four house bots fill the remaining seats. Select **Start together** when both players have joined. Both players select **Ready for next hand** to continue.
+Open http://localhost:4173, choose a table name and select **Open a table**. Send the invite to a friend on the same network. Four house bots fill the remaining seats. Select **Start together** when both players have joined. Either player selects **Deal next hand** to continue; the previous result stays in Past hands.
 
 On macOS, **Start Poker.command** also keeps the host awake while running. The host must remain online. For solo play, open http://localhost:4173/solo.
 

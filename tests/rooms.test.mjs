@@ -13,14 +13,14 @@ test('invalid or replayed actions cannot alter chips or advance the table',()=>{
  assert.throws(()=>rooms.action(host.id,host.token,{type:'raise',amount:1,hand:1,revision:v.revision}));assert.equal(JSON.stringify(rooms.view(host.id,host.token).game),before);
  const request={type:'call',hand:1,revision:v.revision};rooms.action(host.id,host.token,request);assert.throws(()=>rooms.action(host.id,host.token,request));
 });
-test('two human perspectives receive their own reviews and both must ready the next hand',()=>{
+test('two human perspectives receive reviews and either player can deal the next hand',()=>{
  const {rooms,host,friend}=setup();rooms.action(host.id,host.token,{type:'start'});let count=0;
  while(rooms.room(host.id).game.street!=='complete'&&count++<500){
   rooms.view(host.id,host.token);rooms.view(host.id,friend.token);const actor=rooms.room(host.id).game.actor;
   if([0,3].includes(actor)){const person=actor===0?host:friend,v=rooms.view(host.id,person.token);rooms.action(host.id,person.token,{type:v.game.legal.canCheck?'check':'call',hand:v.game.hand,revision:v.revision});}else rooms.tick();
  }
  assert.ok(count<500);for(const [person,name] of [[host,'Host'],[friend,'Friend']]){const v=rooms.view(host.id,person.token);assert.equal(v.review.hands[0].name,name);assert.equal(v.game.players.filter(p=>p.hole.every(Boolean)).length,6);assert.ok(v.review.overall);}
- const first=rooms.action(host.id,host.token,{type:'ready'});assert.equal(first.game.hand,1);const next=rooms.action(host.id,friend.token,{type:'ready'});assert.equal(next.game.hand,2);assert.equal(next.review,null);assert.deepEqual(next.ready,[]);assert.equal(next.history.length,1);assert.equal(next.history[0].hand,1);assert.equal(next.history[0].result.ranking.length,6);assert.equal(next.history[0].deck,undefined);const restored=new Rooms({saved:JSON.parse(JSON.stringify(rooms.export()))});assert.deepEqual(restored.view(host.id,host.token).history,next.history);
+ const hostCopy=new Rooms({saved:JSON.parse(JSON.stringify(rooms.export()))});assert.equal(hostCopy.action(host.id,host.token,{type:'ready',hand:1}).game.hand,2);const next=rooms.action(host.id,friend.token,{type:'ready',hand:1});assert.throws(()=>rooms.action(host.id,host.token,{type:'ready',hand:1}));assert.equal(rooms.room(host.id).game.hand,2);assert.equal(next.game.hand,2);assert.equal(next.review,null);assert.deepEqual(next.ready,[]);assert.equal(next.history.length,1);assert.equal(next.history[0].hand,1);assert.equal(next.history[0].result.ranking.length,6);assert.equal(next.history[0].deck,undefined);const restored=new Rooms({saved:JSON.parse(JSON.stringify(rooms.export()))});assert.deepEqual(restored.view(host.id,host.token).history,next.history);
 });
 test('disconnect stops bots, restart preserves cards and resumes paused',()=>{
  const {rooms,host,friend,advance}=setup();const v=rooms.action(host.id,host.token,{type:'start'});rooms.action(host.id,host.token,{type:'call',hand:1,revision:v.revision});const before=JSON.stringify(rooms.room(host.id).game);advance(13000);rooms.tick();assert.equal(JSON.stringify(rooms.room(host.id).game),before);
