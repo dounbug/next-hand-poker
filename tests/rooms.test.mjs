@@ -26,3 +26,16 @@ test('disconnect stops bots, restart preserves cards and resumes paused',()=>{
  const {rooms,host,friend,advance}=setup();const v=rooms.action(host.id,host.token,{type:'start'});rooms.action(host.id,host.token,{type:'call',hand:1,revision:v.revision});const before=JSON.stringify(rooms.room(host.id).game);advance(13000);rooms.tick();assert.equal(JSON.stringify(rooms.room(host.id).game),before);
  const restored=new Rooms({saved:JSON.parse(JSON.stringify(rooms.export()))});const state=restored.view(host.id,friend.token);assert.equal(state.paused,true);assert.deepEqual(state.game.players[3].hole,rooms.room(host.id).game.players[3].hole);assert.throws(()=>restored.action(host.id,friend.token,{type:'resume'}),/host/);
 });
+test('rename updates both views and action history without altering the hand and survives restart',()=>{
+ const {rooms,host,friend}=setup();const v=rooms.action(host.id,host.token,{type:'start'});rooms.action(host.id,host.token,{type:'call',hand:1,revision:v.revision});
+ const g=rooms.room(host.id).game,deck=[...g.deck],actor=g.actor,chips=g.players.map(p=>p.stack);
+ rooms.action(host.id,host.token,{type:'rename',name:'New name'});
+ const view=rooms.view(host.id,friend.token);assert.equal(view.members[0].name,'New name');assert.equal(view.game.players[0].name,'New name');assert.ok(view.game.log.some(l=>l.startsWith('New name: ')));assert.deepEqual(g.deck,deck);assert.equal(g.actor,actor);assert.deepEqual(g.players.map(p=>p.stack),chips);
+ const restored=new Rooms({saved:JSON.parse(JSON.stringify(rooms.export()))});assert.equal(restored.view(host.id,host.token).members[0].name,'New name');
+});
+test('rename requires own credential, valid and unique name; works in lobby and out of turn',()=>{
+ const {rooms,host,friend}=setup();assert.throws(()=>rooms.action(host.id,'bad',{type:'rename',name:'Bad'}));
+ for(const name of ['', 'friend','<invalid>', 'a'.repeat(19)])assert.throws(()=>rooms.action(host.id,host.token,{type:'rename',name}));
+ rooms.action(host.id,friend.token,{type:'rename',name:'Guest'});rooms.action(host.id,host.token,{type:'start'});rooms.action(host.id,friend.token,{type:'rename',name:'Guest two'});assert.equal(rooms.view(host.id,host.token).game.players[3].name,'Guest two');
+ const bot=rooms.room(host.id).game.players[1].name;assert.throws(()=>rooms.action(host.id,host.token,{type:'rename',name:bot}));
+});

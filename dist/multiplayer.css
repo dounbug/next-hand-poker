@@ -4,3 +4,5 @@
 
 .lobby{background:radial-gradient(ellipse at 100% 0%,#4c132044,transparent 65%),#11090a;border-color:#8a633e77;box-shadow:0 20px 65px #0006}.lobby .eyebrow{color:#d3af77;font-size:11px;letter-spacing:.23em}.lobby h1{font-family:Georgia,serif;font-size:38px;color:#f2dfc3}.lobby input{background:#0c0808;border-color:#765140}.lobby p{color:#cbb9ad}.lobby .small-note{color:#af9a91}.header a{color:#ebd8bc}.room-footer{border-color:#76543455}.room-footer #connection{color:#b5a197}
 @media(max-width:560px){.lobby h1{font-size:30px}}
+
+#new-player-name{display:block;width:100%;margin-top:8px;padding:10px;border:1px solid #765140;border-radius:7px;background:#10090c;color:#f6eeeb}
