@@ -1,3 +1,5 @@
+import {botProfile} from './bot-profiles.js';
+import {botObservation,chooseBot} from './bot-policy.js';
 const RANKS='23456789TJQKA';
 export const HAND_NAMES=['High card','One pair','Two pair','Three of a kind','Straight','Flush','Full house','Four of a kind','Straight flush'];
 function five(cards){
@@ -28,7 +30,7 @@ export function evaluate(cards){
 const PROFILES=[['You','Learning'],['Maya','Tight · patient'],['Leo','Loose · curious'],['Nina','Tight · aggressive'],['Omar','Loose · aggressive'],['Alex','Balanced']];
 const next=(i)=>(i+1)%6;
 export function createGame(previous){
- const players=PROFILES.map(([name,style],i)=>({name,style,stack:previous?.players[i].stack||2000,hole:[],bet:0,total:0,folded:false,actedAt:null,lastAction:'',startStack:previous?.players[i].stack||2000}));
+ const players=PROFILES.map(([name,style],i)=>({name,style:i?botProfile(i).label:style,stack:previous?.players[i].stack||2000,hole:[],bet:0,total:0,folded:false,actedAt:null,lastAction:'',startStack:previous?.players[i].stack||2000}));
  const deck=[...RANKS].flatMap(r=>[...'shdc'].map(s=>r+s));
  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
  const g={version:1,hand:(previous?.hand||0)+1,dealer:previous?next(previous.dealer):3,players,deck,board:[],street:'preflop',currentBet:20,minRaise:20,actor:0,log:[],awards:[],decisions:[],refilled:previous?players.filter((p,i)=>previous.players[i].stack===0).map(p=>p.name):[]};
@@ -103,17 +105,4 @@ export function settle(g){
  for(const award of g.awards)g.log.push(`${award.winners.map(i=>g.players[i].name).join(' & ')}: ${award.refund?'returned':'win'} ${award.amount} — ${award.name}.`);
  return g;
 }
-export function botAction(g){
- const p=g.players[g.actor],l=legal(g),r=p.hole.map(c=>RANKS.indexOf(c[0])+2);
- let strength=(r[0]+r[1]-4)/24*.5+(r[0]===r[1]?.38:0)+(p.hole[0][1]===p.hole[1][1]?.06:0)+(Math.abs(r[0]-r[1])===1?.04:0);
- if(g.board.length>=3){const hand=evaluate([...p.hole,...g.board]);strength=Math.min(.96,.14+hand.category*.15+(Math.max(...r)/14)*.1);}
- const loose=[2,4].includes(g.actor),aggressive=[3,4].includes(g.actor),tight=g.actor===1;
- const noise=Math.random(),pressure=l.call/Math.max(20,g.players.reduce((a,q)=>a+q.total,0));
- if(l.canRaise&&noise<(aggressive?.32:.14)&&strength>(tight?.6:.38)){
- const amount=Math.min(l.max,Math.max(l.min,g.currentBet+Math.max(20,Math.round(g.players.reduce((a,q)=>a+q.total,0)*.55/10)*10)));
- return {type:'raise',amount};
- }
- if(l.canCheck)return {type:'check'};
- if(strength+(loose?.2:0)+noise*.25<.28+Math.min(.55,pressure*.5)+(tight?.12:0))return {type:'fold'};
- return {type:'call'};
-}
+export function botAction(g,rng=Math.random){return chooseBot(botObservation(g),legal(g),evaluate,rng);}

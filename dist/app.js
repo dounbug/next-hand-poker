@@ -1,3 +1,4 @@
+import {botStyleHTML,mountBotProfiles} from './bot-profile-view.js';
 import {rememberHand,renderHandHistory} from './hand-history.js';
 import {createLiveAdvisor} from './live-advice-view.js';
 import {mountBoardOdds} from './board-odds.js';
@@ -12,6 +13,7 @@ const $=s=>document.querySelector(s),KEY='next-hand-practice-v1';
 const audio=mountAudio($('#audio-controls'));
 const boardCalculator=mountBoardOdds($('#board-odds'));
 const liveAdvisor=createLiveAdvisor();
+mountBotProfiles();
 const suits={s:'♠',h:'♥',d:'♦',c:'♣'},suitNames={s:'spades',h:'hearts',d:'diamonds',c:'clubs'},rankNames={T:'10',J:'Jack',Q:'Queen',K:'King',A:'Ace'};
 let strengthRevealed=false,strengthHand=null;
 let pastHands=[];
@@ -39,7 +41,7 @@ function render(){
  $('#table').innerHTML=game.players.map((p,i)=>{
  const show=i===0||done;
  const badge=`${i===game.dealer?'<span class="badge" title="Dealer button">D</span>':''}${i===game.smallBlind?'<span class="badge blind" title="Small blind">SB</span>':''}${i===game.bigBlind?'<span class="badge blind" title="Big blind">BB</span>':''}`;
- return `<div class="seat seat-${i} ${p.folded?'folded':''} ${game.actor===i&&!paused?'active':''}" aria-label="${p.name}, ${p.style}, ${p.stack} chips${p.folded?', folded':''}"><div class="cards">${p.hole.map(c=>card(c,!show)).join('')}${i===0?`<button class="hand-info" data-hand-info aria-label="Show hand strength information" aria-expanded="${strengthRevealed}" aria-controls="starting-strength">i</button>`:''}</div><div class="seat-info"><div class="seat-name">${p.name}${badge}</div><div class="seat-style">${i===0?`${Math.round(p.stack/20*10)/10} big blinds`:p.style}</div><div class="stack">${n(p.stack)}</div></div><div class="seat-action">${p.lastAction||' '}</div></div>`;
+ return `<div class="seat seat-${i} ${p.folded?'folded':''} ${game.actor===i&&!paused?'active':''}" aria-label="${p.name}, ${p.style}, ${p.stack} chips${p.folded?', folded':''}"><div class="cards">${p.hole.map(c=>card(c,!show)).join('')}${i===0?`<button class="hand-info" data-hand-info aria-label="Show hand strength information" aria-expanded="${strengthRevealed}" aria-controls="starting-strength">i</button>`:''}</div><div class="seat-info"><div class="seat-name">${p.name}${badge}</div><div class="seat-style">${i===0?`${Math.round(p.stack/20*10)/10} big blinds`:botStyleHTML(i)}</div><div class="stack">${n(p.stack)}</div></div><div class="seat-action">${p.lastAction||' '}</div></div>`;
  }).join('')+`<div class="board"><div class="pot-label">${done?'Pot awarded':'Total pot'}</div><div class="pot-value">${n(done?game.pot:game.players.reduce((a,p)=>a+p.total,0))}</div><div class="cards">${Array.from({length:5},(_,i)=>card(game.board[i])).join('')}</div><p class="board-caption">${done?'Every hand is another repetition.':game.board.length?'Shared cards · make your best five':'Your two cards are private'}</p></div>`;
  rememberHand(pastHands,game);renderHandHistory($('#past-hands'),pastHands,c=>card(c));
  if(paused){$('#decision').innerHTML=`<div class="paused"><h2>${restored?'Welcome back.':'Take your time.'}</h2><p>${storageOk?'Your exact hand is saved here. Resume whenever you are ready.':'This hand is paused. Browser storage is unavailable, so closing this page may lose it.'}</p><button class="primary" data-action="resume">Resume hand</button></div>`;}

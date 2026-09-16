@@ -41,3 +41,9 @@ Tests cover hand evaluation, legal betting, side pots, ties, chip conservation, 
 ## Live betting estimates
 
 On your turn, Suggested play displays an estimated action, a legal size where appropriate, and the reason below the action controls. A browser worker samples 500 runouts using only your cards, the visible board and public chip contributions. It estimates your share of contestable pots against uniformly random opponent hands, including ties and side-pot eligibility, and compares it with the call price. It assumes showdown with no further betting. Position-sensitive starting-hand strength supports modest preflop raises. These are heuristics, not GTO or a model of opponents’ actual betting ranges. Suggestions never place bets automatically.
+
+## Opponent styles and card odds
+
+Card odds defaults to any suit and computes the chance of at least one matching rank among selected remaining board cards, without replacement. Choose a specific suit to narrow it to one card.
+
+Click a bot’s style label for its behavior, professional-player inspiration and source. The policies use position, public betting, stack depth, draws and varied sizing; they are simplified heuristics and never use hidden opposing cards. See [research and design notes](BOT_STYLES.md). Trading labels are fictional personas, not claims about trader behavior.

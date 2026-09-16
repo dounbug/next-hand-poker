@@ -1,3 +1,4 @@
+import {botStyleHTML,mountBotProfiles} from './bot-profile-view.js';
 import {renderHandHistory} from './hand-history.js';
 import {createLiveAdvisor} from './live-advice-view.js';
 import {mountBoardOdds} from './board-odds.js';
@@ -10,6 +11,7 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>
 const audio=mountAudio($('#audio-controls'));
 const boardCalculator=mountBoardOdds($('#board-odds'));
 const liveAdvisor=createLiveAdvisor();
+mountBotProfiles();
 const roomParam=new URL(location.href).searchParams.get('room');let inviteOrigin=location.origin;
 let id=roomParam,token=id?localStorage.getItem('poker-room-'+id):null,state=null,painted=-1,busy=false,showStrength=false,lastHand=null,polling=false;
 const suits={s:'♠',h:'♥',d:'♦',c:'♣'};
@@ -39,7 +41,7 @@ function render(){$('#rename-player').hidden=false;const g=state.game;$('#join-f
  audio.update({room:id,hand:g.hand,street:g.street,actor:g.actor,seat:state.seat,paused:state.paused,actionCount:g.log.length});
  document.title=!state.paused&&g.street!=='complete'&&g.actor===state.seat?'Your turn · Next Hand':'Next Hand · Macau After Hours';
  if(lastHand!==g.hand){showStrength=false;lastHand=g.hand;}renderStrength();$('#hand-number').textContent='Hand '+g.hand;$('#street').textContent=g.street==='complete'?'Hand complete':g.street;$('#room-label').textContent='Shared table';
- $('#table').innerHTML=g.players.map((p,i)=>{const seat=(i-state.seat+6)%6;return `<div class="seat seat-${seat} ${p.folded?'folded':''} ${g.actor===i&&!state.paused?'active':''}"><div class="cards">${p.hole.map(card).join('')}${i===state.seat?`<button class="hand-info" data-info aria-label="Hand strength information" aria-expanded="${showStrength}" aria-controls="strength">i</button>`:''}</div><div class="seat-info"><div class="seat-name">${esc(p.name)}${i===g.dealer?'<span class="badge">D</span>':''}${i===g.smallBlind?'<span class="badge blind">SB</span>':''}${i===g.bigBlind?'<span class="badge blind">BB</span>':''}</div><div class="seat-style">${i===state.seat?'You':esc(p.style)}</div><div class="stack">${n(p.stack)}</div></div><div class="seat-action">${esc(p.lastAction)}</div></div>`;}).join('')+`<div class="board"><div class="pot-label">${g.street==='complete'?'Pot awarded':'Pot'}</div><div class="pot-value">${n(g.pot)}</div><div class="cards">${Array.from({length:5},(_,i)=>g.board[i]?card(g.board[i]):'<span class="card empty">·</span>').join('')}</div></div>`;
+ $('#table').innerHTML=g.players.map((p,i)=>{const seat=(i-state.seat+6)%6;return `<div class="seat seat-${seat} ${p.folded?'folded':''} ${g.actor===i&&!state.paused?'active':''}"><div class="cards">${p.hole.map(card).join('')}${i===state.seat?`<button class="hand-info" data-info aria-label="Hand strength information" aria-expanded="${showStrength}" aria-controls="strength">i</button>`:''}</div><div class="seat-info"><div class="seat-name">${esc(p.name)}${i===g.dealer?'<span class="badge">D</span>':''}${i===g.smallBlind?'<span class="badge blind">SB</span>':''}${i===g.bigBlind?'<span class="badge blind">BB</span>':''}</div><div class="seat-style">${i===state.seat?'You':[0,3].includes(i)?'Human':botStyleHTML(i)}</div><div class="stack">${n(p.stack)}</div></div><div class="seat-action">${esc(p.lastAction)}</div></div>`;}).join('')+`<div class="board"><div class="pot-label">${g.street==='complete'?'Pot awarded':'Pot'}</div><div class="pot-value">${n(g.pot)}</div><div class="cards">${Array.from({length:5},(_,i)=>g.board[i]?card(g.board[i]):'<span class="card empty">·</span>').join('')}</div></div>`;
  const me=g.players[state.seat],l=g.legal;
  if(g.street==='complete')$('#decision').innerHTML=`${winnerHTML(state.review?.result)}<button class="primary" data-action="ready" ${state.ready.includes(state.seat)?'disabled':''}>${state.ready.includes(state.seat)?'Ready · waiting for friend':'Ready for next hand →'}</button><p class="small-note">The next hand starts when you are both ready.</p>`;
  else if(state.paused)$('#decision').innerHTML='<h2>Table paused</h2><p class="waiting">The host can resume the shared game.</p>';
