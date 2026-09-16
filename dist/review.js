@@ -13,7 +13,8 @@ function unbeatable(hole,board){
 }
 export function buildReview(g){
  if(g.street!=='complete')return null;
- const hands=g.players.map((p,i)=>{const ranked=g.board.length>=3?evaluate([...p.hole,...g.board]):null;return {name:p.name,hole:p.hole,rank:ranked?.name??rankAt(p.hole,g.board),bestFive:ranked?.cards??[],folded:p.folded,hypothetical:p.folded&&g.board.length===5,winner:g.awards.some(a=>!a.refund&&a.winners.includes(i)),net:p.stack-p.startStack};});
+ const result=roundResult(g),comparisonBoard=result.board;
+ const hands=g.players.map((p,i)=>{const ranked=comparisonBoard.length>=3?evaluate([...p.hole,...comparisonBoard]):null;return {name:p.name,hole:p.hole,rank:ranked?.name??rankAt(p.hole,g.board),bestFive:ranked?.cards??[],folded:p.folded,hypothetical:result.hypothetical||(p.folded&&g.board.length===5),winner:g.awards.some(a=>!a.refund&&a.winners.includes(i)),net:p.stack-p.startStack};});
  const choices=g.decisions??[],hero=g.players[0];
  const freeFold=choices.find(d=>d.type==='fold'&&d.owed===0);
  const nutsFold=choices.find(d=>d.type==='fold'&&unbeatable(hero.hole,boardAt(g,d)));
@@ -40,15 +41,16 @@ export function buildReview(g){
  }
  const winners=hands.filter(h=>h.winner), heroRank=hands[0].rank;
  let comparison={title:hero.folded?'Your folded hand vs. the winner':'Your hand vs. the winner',body:`You: ${heroRank}. ${winners.map(h=>`${h.name}: ${h.rank}`).join('. ')}.`,result:'',note:''};
- if(g.board.length>=3&&winners.length){
- const yours=evaluate([...hero.hole,...g.board]).score;
- const theirs=Math.max(...g.players.filter((p,i)=>hands[i].winner).map(p=>evaluate([...p.hole,...g.board]).score));
+ if(comparisonBoard.length>=3&&winners.length){
+ const yours=evaluate([...hero.hole,...comparisonBoard]).score;
+ const theirs=Math.max(...g.players.filter((p,i)=>hands[i].winner).map(p=>evaluate([...p.hole,...comparisonBoard]).score));
  comparison.result=hands[0].winner?'Your hand won a pot':yours>theirs?'Your hand was stronger':yours<theirs?'Your hand was weaker':'Your hand tied the strongest winner';
  comparison.note=g.board.length===5?(hero.folded?'This compares your folded cards with the actual winners on the final board. Staying in could have changed the betting and outcome.':'This comparison uses the completed board; side pots can have different winners.'):'The hand ended before the river. This compares only the cards dealt; later cards could have changed the result.';
  }else{comparison.result='The hand ended before the flop';comparison.note='These are starting hands, not final five-card ranks. No shared cards were dealt, so we cannot say which hand would have won.';}
+ if(result.hypothetical){comparison.title='Hypothetical hand comparison';comparison.note=result.note;comparison.result=hands[0].winner?'You won the actual pot; ranks below use the hypothetical runout':comparison.result.replace('Your hand was','On this hypothetical runout, your hand would be').replace('Your hand tied','On this hypothetical runout, your hand would tie');}
  if(hero.folded)comparison.note+=' A weaker revealed hand does not by itself prove the fold was right; judge the price and information you had.';
  const checks=choices.filter(d=>d.type==='check'&&d.owed===0);
  const wentWell=checks.length?`You checked for free on the ${[...new Set(checks.map(d=>d.street))].join(' and ')} and kept your options open without paying. This does not rule out a useful bet.`:'No clear positive decision identified from this hand alone. Winning chips is not enough to grade the play.';
  const overall=!choices.length?'No voluntary decisions to assess this hand.':cue.tone==='review'?'There is a specific decision worth revisiting below.':`You made ${choices.length} decision${choices.length===1?'':'s'}. ${hero.folded?'You chose to fold before the hand ended.':'You stayed in through the end.'} The cards and result alone cannot grade the whole hand.`;
- return {hands,decision,cue,opponent,comparison,wentWell,overall,streets:buildStreetReview(g),result:roundResult(g),finalBoard:g.board.length===5};
+ return {hands,decision,cue,opponent,comparison,wentWell,overall,streets:buildStreetReview(g),result,finalBoard:g.board.length===5};
 }
