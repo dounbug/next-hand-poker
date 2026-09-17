@@ -13,5 +13,12 @@ export function mountModernUI(){
  document.addEventListener('click',event=>{if(!settings.contains(event.target))settings.open=false;});
  const sidebar=document.querySelector('.decision-sidebar');const title=document.createElement('div');title.className='sidebar-heading';title.innerHTML='<span class="section-kicker">PLAY & LEARN</span><span class="practice-chip">Practice chips</span>';sidebar.prepend(title);
  const footer=document.querySelector('.room-footer');if(footer){footer.classList.add('session-toolbar');content.append(footer);document.getElementById('invite').textContent='Invite friend';}
+ const odds=document.getElementById('board-odds');
+ if(odds){
+  const button=document.createElement('button');button.type='button';button.textContent='Card odds';button.setAttribute('aria-haspopup','dialog');header.prepend(button);
+  const dialog=document.createElement('dialog');dialog.className='odds-dialog';dialog.setAttribute('aria-labelledby','odds-title');dialog.innerHTML='<div class="odds-dialog-heading"><h2 id="odds-title">Card odds calculator</h2><button type="button" aria-label="Close card odds">Close</button></div>';
+  const calculator=odds.querySelector('details');calculator.open=true;calculator.querySelector('summary').hidden=true;dialog.append(odds);document.body.append(dialog);
+  button.addEventListener('click',()=>dialog.showModal());dialog.querySelector('button').addEventListener('click',()=>dialog.close());
+ }
  const history=document.querySelector('.past-hands .panel-heading');if(history){const note=document.createElement('span');note.textContent='Your session · newest first';history.append(note);}
 }
