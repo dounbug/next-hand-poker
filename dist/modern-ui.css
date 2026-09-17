@@ -33,3 +33,14 @@ main{max-width:1100px}.workspace{display:flex;flex-direction:column;align-items:
 .current-hand{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;background:#530b23;border:1px solid #ed3e6a;border-radius:12px}.current-hand>div:first-child{display:grid;gap:4px}.current-hand-label{font-size:10px;letter-spacing:.12em;color:#ffa9c2;font-weight:700}.current-hand strong{font-size:23px;color:#fff}.current-hand>div>span:not(.current-hand-label){font-size:13px;color:#ffd3df}.made-hand-cards{display:flex;gap:5px;flex-shrink:0}.made-card{background:#fff5f7;color:#26151d;border-radius:5px;padding:8px 6px;font-weight:750;font-size:16px}.made-card.red{color:#c7103c}
 .panel.past-hands{background:#210b13;border-color:#672035}.settings-content{background:#260d18;border-color:#94314e}.table-settings>summary{border-color:#88364c}.session-toolbar button{background:#710d2a;border-color:#da3159;color:white}
 @media(max-width:560px){.decision-sidebar{padding:16px}.current-hand{padding:12px;flex-wrap:wrap}.current-hand strong{font-size:21px}.made-card{padding:6px}.decision-sidebar .basic-actions button{font-size:14px}.workspace{gap:14px}}
+
+/* Keep decisions in the first laptop viewport. */
+.settings-content .session-toolbar.room-footer{display:grid;gap:10px;margin:0;padding:10px 0 0;border-top:1px solid #672035}
+.turn-summary{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 18px;margin-bottom:10px}.decision-sidebar .turn-summary h2{margin:0;font-size:18px;white-space:nowrap}.turn-summary p{margin:0;font-size:13px;color:#efd2db;line-height:1.4}
+.current-hand .made-hand-cards .made-card{color:#26151d;font-size:16px}.current-hand .made-hand-cards .made-card.red{color:#c7103c}
+@media(min-width:760px){
+.header{height:60px;min-height:60px;padding-top:8px;padding-bottom:8px}main{padding-top:10px}.play-column{padding:0}.table-bar{margin-bottom:8px}.workspace{gap:10px}
+.play-column .table{height:clamp(300px,calc(100dvh - 310px),420px);min-height:0}
+.decision-sidebar{padding:12px 18px}.decision-sidebar .decision{padding-top:0}.decision-sidebar .basic-actions{margin-top:8px}.decision-sidebar .basic-actions button{min-height:46px}
+.current-hand{padding:8px 12px;min-height:52px}.current-hand>div:first-child{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px}.current-hand strong{font-size:19px}.current-hand .made-card{padding:6px}.seat-0{bottom:8px}.seat-3{top:8px}.seat-info{padding:5px 4px}.seat .card.back{height:24px;width:19px}.seat .card:not(.back){height:40px;width:29px;font-size:18px}.seat .card .suit{font-size:15px}.seat-style{margin:2px 0}.seat-action{font-size:11px}.board .card{height:42px;width:30px;font-size:19px}.board-caption{display:none}
+}

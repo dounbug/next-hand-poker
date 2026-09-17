@@ -54,7 +54,7 @@ function render(){
  }else if(game.actor!==0){$('#decision').innerHTML=`<div class="decision-head"><h2>${hero.folded?'Watch the hand play out.':`${game.players[game.actor].name} is thinking…`}</h2></div><p class="subtle">${hero.folded?'You have folded. Follow the action and see how the pot is won.':'Action moves clockwise. Your controls appear when it is your turn.'}</p><button class="quiet" data-action="step">Next opponent action</button>`;timer=setTimeout(takeBot,850);}
  else{
  const pot=game.players.reduce((a,p)=>a+p.total,0);const odds=l.call?Math.round(100*l.call/l.callPot):0;
- $('#decision').innerHTML=`<div class="decision-head"><h2>Your move</h2><span class="street-label">${streetName()}</span></div><p class="subtle">Pot: <strong>${n(pot)}</strong> · Your stack: <strong>${n(hero.stack)}</strong><br>${l.canCheck?'Nothing to call — checking costs 0.':`Call <strong>${n(l.call)}</strong> more to stay in.`}${guided&&l.call?`<br>Call price: ${odds}% of the chips you can contest after calling; not your win probability.`:''}</p>${currentHandHTML(hero.hole,game.board)}${actionControlsHTML(l,pot,game.currentBet,hero)}${error?`<p class="error" role="alert">${error}</p>`:''}`;
+ $('#decision').innerHTML=`<div class="turn-summary"><h2>Your move</h2><p>Pot: <strong>${n(pot)}</strong> · Stack: <strong>${n(hero.stack)}</strong> · ${l.canCheck?'Check for free':`Call <strong>${n(l.call)}</strong> more`}</p></div>${currentHandHTML(hero.hole,game.board)}${actionControlsHTML(l,pot,game.currentBet,hero)}${error?`<p class="error" role="alert">${error}</p>`:''}`;
 
  }
  liveAdvisor($('#decision'),game,0,l,!paused&&!done&&game.actor===0);

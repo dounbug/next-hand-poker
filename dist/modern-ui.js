@@ -12,6 +12,6 @@ export function mountModernUI(){
  document.addEventListener('keydown',event=>{if(event.key==='Escape')settings.open=false;});
  document.addEventListener('click',event=>{if(!settings.contains(event.target))settings.open=false;});
  const sidebar=document.querySelector('.decision-sidebar');const title=document.createElement('div');title.className='sidebar-heading';title.innerHTML='<span class="section-kicker">PLAY & LEARN</span><span class="practice-chip">Practice chips</span>';sidebar.prepend(title);
- const footer=document.querySelector('.room-footer');if(footer){const workspace=document.querySelector('.workspace');footer.classList.add('session-toolbar');workspace.before(footer);document.getElementById('invite').textContent='Invite friend';}
+ const footer=document.querySelector('.room-footer');if(footer){footer.classList.add('session-toolbar');content.append(footer);document.getElementById('invite').textContent='Invite friend';}
  const history=document.querySelector('.past-hands .panel-heading');if(history){const note=document.createElement('span');note.textContent='Your session · newest first';history.append(note);}
 }
