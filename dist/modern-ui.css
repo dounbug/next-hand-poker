@@ -19,3 +19,17 @@ button{border-radius:10px;background:#292830;border-color:#49414c;font-weight:60
 @media(prefers-reduced-motion:reduce){button{transition:none}}
 
 .settings-content>a{color:#efbac8;font-size:13px;padding:10px 0;text-decoration:none}
+
+/* Center the game and keep every decision directly underneath it. */
+body{background:radial-gradient(ellipse at 50% 12%,#620b1d77,transparent 65%),#100609}
+.header{max-width:1200px}.brand-mark{color:#ff244b}
+main{max-width:1100px}.workspace{display:flex;flex-direction:column;align-items:center;gap:22px}.play-column{width:100%;max-width:980px}.play-column .table{max-width:none}
+.table{background:radial-gradient(ellipse at 50% 40%,#a51032,#69091f 70%,#360410);border-color:#ec315b88;box-shadow:inset 0 0 0 8px #26040e,inset 0 0 0 9px #ff386055,0 18px 48px #0007}
+.seat.active .seat-info{border-color:#ff365c;box-shadow:0 0 0 3px #ff244b44}.seat-action{color:#ff8ca2}
+.decision-sidebar{position:static;max-height:none;overflow:visible;width:100%;max-width:980px;background:#230b13;border-color:#95233e;padding:20px 24px}.sidebar-heading{display:none}
+.decision-sidebar .decision h2{font-size:22px;color:#fff}.decision .waiting,.decision .subtle{margin:8px 0 14px}.decision-sidebar .basic-actions{margin-top:12px}.decision-sidebar .basic-actions button{min-height:52px;font-size:16px}
+.primary{background:#ed1745;border-color:#ff4a6e}.primary:hover:not(:disabled){background:#ff2b56}.basic-actions [data-bet-toggle]{background:#990e30;border-color:#e92955;color:white}.basic-actions [data-action=fold]{border-color:#a7475e;color:#ffd5de;background:#380f1d}
+.live-advice{background:#3a0c1e;border-color:#7c1938;border-left-color:#ff315c;margin-top:16px}.live-advice strong{color:#ffbacb}.live-advice h3{color:#ff7e9f}.live-advice p{color:#f0d2dd}.live-advice .advice-metrics{color:#ff9fbc}.practice-chip{background:#461021;color:#ffb5c7}
+.current-hand{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;background:#530b23;border:1px solid #ed3e6a;border-radius:12px}.current-hand>div:first-child{display:grid;gap:4px}.current-hand-label{font-size:10px;letter-spacing:.12em;color:#ffa9c2;font-weight:700}.current-hand strong{font-size:23px;color:#fff}.current-hand>div>span:not(.current-hand-label){font-size:13px;color:#ffd3df}.made-hand-cards{display:flex;gap:5px;flex-shrink:0}.made-card{background:#fff5f7;color:#26151d;border-radius:5px;padding:8px 6px;font-weight:750;font-size:16px}.made-card.red{color:#c7103c}
+.panel.past-hands{background:#210b13;border-color:#672035}.settings-content{background:#260d18;border-color:#94314e}.table-settings>summary{border-color:#88364c}.session-toolbar button{background:#710d2a;border-color:#da3159;color:white}
+@media(max-width:560px){.decision-sidebar{padding:16px}.current-hand{padding:12px;flex-wrap:wrap}.current-hand strong{font-size:21px}.made-card{padding:6px}.decision-sidebar .basic-actions button{font-size:14px}.workspace{gap:14px}}

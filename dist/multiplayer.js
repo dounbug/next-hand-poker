@@ -1,3 +1,4 @@
+import {currentHandHTML} from './current-hand.js';
 import {mountModernUI} from './modern-ui.js';
 import {botStyleHTML,mountBotProfiles} from './bot-profile-view.js';
 import {renderHandHistory} from './hand-history.js';
@@ -48,7 +49,7 @@ function render(){$('#rename-player').hidden=false;const g=state.game;$('#join-f
  if(g.street==='complete')$('#decision').innerHTML=`${winnerHTML(state.review?.result)}<button class="primary" data-action="ready">Deal next hand →</button><p class="small-note">Either player can deal. Review earlier rounds in Past hands.</p>`;
  else if(state.paused)$('#decision').innerHTML='<h2>Table paused</h2><p class="waiting">The host can resume the shared game.</p>';
  else if(g.actor!==state.seat)$('#decision').innerHTML=`<h2>${me.folded?'You folded.':`${esc(g.players[g.actor].name)}’s turn`}</h2><p class="waiting">${me.folded?'Watch the hand finish, then compare the revealed cards.':'Your actions appear when it is your turn.'}</p>`;
- else {const currentBet=g.currentBet??Math.max(...g.players.map(p=>p.bet));$('#decision').innerHTML=`<h2>Your move</h2><p class="waiting">Pot: <strong>${n(g.pot)}</strong> · Your stack: <strong>${n(me.stack)}</strong><br>${l.canCheck?'Nothing to call — checking costs 0.':`Call <strong>${n(l.call)}</strong> more to stay in.`}</p>${actionControlsHTML(l,g.pot,currentBet,me)}`;}
+ else {const currentBet=g.currentBet??Math.max(...g.players.map(p=>p.bet));$('#decision').innerHTML=`<h2>Your move</h2><p class="waiting">Pot: <strong>${n(g.pot)}</strong> · Your stack: <strong>${n(me.stack)}</strong><br>${l.canCheck?'Nothing to call — checking costs 0.':`Call <strong>${n(l.call)}</strong> more to stay in.`}</p>${currentHandHTML(me.hole,g.board)}${actionControlsHTML(l,g.pot,currentBet,me)}`;}
 
  liveAdvisor($('#decision'),g,state.seat,l,!state.paused&&g.street!=='complete'&&g.actor===state.seat);
  const review=state.review;$('#review').hidden=!review;if(review){$('#review').innerHTML=`${rankingHTML(review.result,card)}<div class="review compact-review"><h2>Hand review</h2><p><strong>${esc(review.comparison.result)}</strong> · ${n(me.stack-me.startStack)} chips</p><p>${esc(review.overall)}</p><div class="review-sections"><section><h3>What went well</h3><p>${esc(review.wentWell)}</p></section><section><h3>Decisions to revisit</h3><p><strong>${esc(review.cue.title)}</strong></p><p>${esc(review.cue.body)}</p><p>${esc(review.cue.next)}</p></section></div>${streetReviewHTML(review.streets,card)}<p class="small-note">${esc(review.comparison.note)}</p></div>`;}
