@@ -3,7 +3,7 @@ export function createLiveAdvisor(){
  let worker=null,current='',result=null,serial=0,root=null;
  return function update(container,g,seat,legal,enabled){
   root=null;if(!enabled){current='';result=null;serial++;return;}
-  container.insertAdjacentHTML('beforeend','<section class="live-advice" aria-label="Live betting estimate"><h3>Suggested play <span>ESTIMATE</span></h3><div data-advice-result role="status" aria-live="polite">Estimating your options…</div></section>');
+  container.insertAdjacentHTML('beforeend','<section class="live-advice" aria-label="Live betting estimate"><h3>Your coach <span>ESTIMATE</span></h3><div data-advice-result role="status" aria-live="polite">Estimating your options…</div></section>');
   root=container.querySelector('[data-advice-result]');
   const input=adviceInput(g,seat,legal),key=JSON.stringify(input);
   if(current===key){if(result)root.innerHTML=adviceHTML(result);return;}
