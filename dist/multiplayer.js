@@ -1,3 +1,4 @@
+import {mountStrengthOverlay} from './strength-overlay.js';
 import {createTurnPanel} from './turn-panel.js';
 import {currentHandHTML} from './current-hand.js';
 import {mountModernUI} from './modern-ui.js';
@@ -38,6 +39,7 @@ $('#invite').addEventListener('click',copyInvite);$('#pause').addEventListener('
 $('#decision').addEventListener('click',e=>{if(toggleBetPanel($('#decision'),e.target))return;const preset=e.target.closest('[data-bet-size]');if(preset){$('#raise-amount').value=preset.dataset.betSize;updateSizing();return;}const button=e.target.closest('[data-action]');if(button)send(button.dataset.action,button.dataset.action==='raise'?Number($('#raise-amount').value):undefined);});
 function updateSizing(source){if(state?.game?.legal){const g=state.game;updateBetPanel($('#decision'),g.legal,g.pot,g.currentBet??Math.max(...g.players.map(p=>p.bet)),g.players[state.seat],source);}}
 $('#decision').addEventListener('input',e=>{if(['raise-amount','raise-slider'].includes(e.target.id))updateSizing(e.target);});
+mountStrengthOverlay($('#strength'),()=>{showStrength=false;});
 $('#table').addEventListener('click',e=>{if(e.target.closest('[data-info]')){showStrength=!showStrength;renderStrength();e.target.closest('[data-info]').setAttribute('aria-expanded',String(showStrength));}});
 function renderStrength(){const box=$('#strength');box.hidden=!showStrength;if(!showStrength||!state.game)return;const g=state.game,h=handStrength(g.players[state.seat].hole,g.board);box.innerHTML=`<strong>${esc(h.rank)} · percentile ≈ ${h.percentile}</strong><p>${g.board.length?'Current made-hand strength':'Starting-hand strength'}${g.players[state.seat].folded?' · folded cards':''}</p><small>${esc(h.basis)}</small>`;}
 function render(){$('#rename-player').hidden=false;const g=state.game;$('#join-form').hidden=true;$('#room-lobby').hidden=false;$('#lobby').hidden=!!g;$('#game-ui').hidden=!g;$('#pause').hidden=!g||!state.host;$('#pause').textContent=state.paused?'Resume table':'Pause table';

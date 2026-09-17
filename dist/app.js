@@ -1,3 +1,4 @@
+import {mountStrengthOverlay} from './strength-overlay.js';
 import {createTurnPanel} from './turn-panel.js';
 import {currentHandHTML} from './current-hand.js';
 import {mountModernUI} from './modern-ui.js';
@@ -35,6 +36,7 @@ function renderStrength(){
  const strength=handStrength(game.players[0].hole,game.board),p=strength.percentile;
  box.innerHTML=`<div id="strength-answer"><strong>${strength.rank} · about the ${p}${p%100>=11&&p%100<=13?'th':p%10===1?'st':p%10===2?'nd':p%10===3?'rd':'th'} percentile</strong><p>${game.board.length<3?'Starting-hand strength':'Strength on the current board'}${game.players[0].folded?' · your folded cards':''}</p><small>${strength.basis}</small></div>`;
 }
+mountStrengthOverlay($('#starting-strength'),()=>{strengthRevealed=false;});
 $('#table').addEventListener('click',e=>{const button=e.target.closest('[data-hand-info]');if(button){strengthRevealed=!strengthRevealed;renderStrength();button.setAttribute('aria-expanded',String(strengthRevealed));}});
 function render(){
  boardCalculator.update({hole:game.players[0].hole,board:game.board,complete:game.street==='complete'});
