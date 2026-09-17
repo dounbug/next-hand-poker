@@ -1,3 +1,4 @@
+import {createTurnPanel} from './turn-panel.js';
 import {currentHandHTML} from './current-hand.js';
 import {mountModernUI} from './modern-ui.js';
 import {botStyleHTML,mountBotProfiles} from './bot-profile-view.js';
@@ -13,6 +14,7 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>
 const audio=mountAudio($('#audio-controls'));
 const boardCalculator=mountBoardOdds($('#board-odds'));
 const liveAdvisor=createLiveAdvisor();
+const turnPanel=createTurnPanel();
 mountBotProfiles();
 mountModernUI();
 const roomParam=new URL(location.href).searchParams.get('room');let inviteOrigin=location.origin;
@@ -43,18 +45,20 @@ function render(){$('#rename-player').hidden=false;const g=state.game;$('#join-f
  boardCalculator.update({hole:g.players[state.seat].hole,board:g.board,complete:g.street==='complete'});
  audio.update({room:id,hand:g.hand,street:g.street,actor:g.actor,seat:state.seat,paused:state.paused,actionCount:g.log.length});
  document.title=!state.paused&&g.street!=='complete'&&g.actor===state.seat?'Your turn · Next Hand':'Next Hand · Macau After Hours';
- if(lastHand!==g.hand){showStrength=false;lastHand=g.hand;}renderStrength();$('#hand-number').textContent='Hand '+g.hand;$('#street').textContent=g.street==='complete'?'Hand complete':g.street;$('#room-label').textContent='Shared table';
+ if(lastHand!==g.hand){showStrength=false;lastHand=g.hand;}renderStrength();$('#hand-number').textContent='Hand '+g.hand;$('#street').textContent=g.street==='complete'?'Hand complete':g.street;$('#room-label').textContent='';
  $('#table').innerHTML=g.players.map((p,i)=>{const seat=(i-state.seat+6)%6;return `<div class="seat seat-${seat} ${p.folded?'folded':''} ${g.actor===i&&!state.paused?'active':''}"><div class="cards">${p.hole.map(card).join('')}${i===state.seat?`<button class="hand-info" data-info aria-label="Hand strength information" aria-expanded="${showStrength}" aria-controls="strength">i</button>`:''}</div><div class="seat-info"><div class="seat-name">${esc(p.name)}${i===g.dealer?'<span class="badge">D</span>':''}${i===g.smallBlind?'<span class="badge blind">SB</span>':''}${i===g.bigBlind?'<span class="badge blind">BB</span>':''}</div><div class="seat-style">${i===state.seat?'You':[0,3].includes(i)?'Human':botStyleHTML(i)}</div><div class="stack">${n(p.stack)}</div></div><div class="seat-action">${esc(p.lastAction)}</div></div>`;}).join('')+`<div class="board"><div class="pot-label">${g.street==='complete'?'Pot awarded':'Pot'}</div><div class="pot-value">${n(g.pot)}</div><div class="cards">${Array.from({length:5},(_,i)=>g.board[i]?card(g.board[i]):'<span class="card empty">·</span>').join('')}</div></div>`;
  const me=g.players[state.seat],l=g.legal;
+ turnPanel.capture($('#decision'),g.hand);
  if(g.street==='complete')$('#decision').innerHTML=`${winnerHTML(state.review?.result)}<button class="primary" data-action="ready">Deal next hand →</button><p class="small-note">Either player can deal. Review earlier rounds in Past hands.</p>`;
  else if(state.paused)$('#decision').innerHTML='<h2>Table paused</h2><p class="waiting">The host can resume the shared game.</p>';
- else if(g.actor!==state.seat)$('#decision').innerHTML=`<h2>${me.folded?'You folded.':`${esc(g.players[g.actor].name)}’s turn`}</h2><p class="waiting">${me.folded?'Watch the hand finish, then compare the revealed cards.':'Your actions appear when it is your turn.'}</p>`;
+ else if(g.actor!==state.seat)$('#decision').innerHTML=turnPanel.waiting(me.hole,g.board);
  else {const currentBet=g.currentBet??Math.max(...g.players.map(p=>p.bet));$('#decision').innerHTML=`<div class="turn-summary"><h2>Your move</h2><p>Pot: <strong>${n(g.pot)}</strong> · Your stack: <strong>${n(me.stack)}</strong> · ${l.canCheck?'Nothing to call — checking costs 0.':`Call <strong>${n(l.call)}</strong> more to stay in.`}</p></div>${currentHandHTML(me.hole,g.board)}${actionControlsHTML(l,g.pot,currentBet,me)}`;}
 
  liveAdvisor($('#decision'),g,state.seat,l,!state.paused&&g.street!=='complete'&&g.actor===state.seat);
+ turnPanel.update($('#decision'),g,state.seat,state.paused);
  const review=state.review;$('#review').hidden=!review;if(review){$('#review').innerHTML=`${rankingHTML(review.result,card)}<div class="review compact-review"><h2>Hand review</h2><p><strong>${esc(review.comparison.result)}</strong> · ${n(me.stack-me.startStack)} chips</p><p>${esc(review.overall)}</p><div class="review-sections"><section><h3>What went well</h3><p>${esc(review.wentWell)}</p></section><section><h3>Decisions to revisit</h3><p><strong>${esc(review.cue.title)}</strong></p><p>${esc(review.cue.body)}</p><p>${esc(review.cue.next)}</p></section></div>${streetReviewHTML(review.streets,card)}<p class="small-note">${esc(review.comparison.note)}</p></div>`;}
  renderHandHistory($('#past-hands'),state.history||[],card);painted=state.revision;
 }
-async function refresh(){if(!id||!token||polling)return;polling=true;try{state=await api('/api/rooms/'+id);$('#connection').textContent=state.members.some(m=>!m.online)?'Waiting for a player to reconnect · bot play is paused':'Connected · shared table';$('#connection').classList.remove('connection-offline');if(state.revision!==painted||!state.game)render();}catch(e){$('#connection').textContent='Disconnected · reconnecting';$('#connection').classList.add('connection-offline');$('#error').textContent=e.message;}finally{polling=false;}}
+async function refresh(){if(!id||!token||polling)return;polling=true;try{state=await api('/api/rooms/'+id);$('#connection').textContent=state.members.some(m=>!m.online)?'Waiting for a player to reconnect · bot play is paused':'Connected';$('#connection').classList.remove('connection-offline');if(state.revision!==painted||!state.game)render();}catch(e){$('#connection').textContent='Disconnected · reconnecting';$('#connection').classList.add('connection-offline');$('#error').textContent=e.message;}finally{polling=false;}}
 try{const local=await api('/api/local');inviteOrigin=local.inviteBase||(['localhost','127.0.0.1','[::1]'].includes(location.hostname)?local.addresses[0]:null)||location.origin;}catch{}
 if(token)refresh();setInterval(refresh,800);

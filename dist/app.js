@@ -1,3 +1,4 @@
+import {createTurnPanel} from './turn-panel.js';
 import {currentHandHTML} from './current-hand.js';
 import {mountModernUI} from './modern-ui.js';
 import {botStyleHTML,mountBotProfiles} from './bot-profile-view.js';
@@ -15,6 +16,7 @@ const $=s=>document.querySelector(s),KEY='next-hand-practice-v1';
 const audio=mountAudio($('#audio-controls'));
 const boardCalculator=mountBoardOdds($('#board-odds'));
 const liveAdvisor=createLiveAdvisor();
+const turnPanel=createTurnPanel();
 mountBotProfiles();
 mountModernUI();
 const suits={s:'♠',h:'♥',d:'♦',c:'♣'},suitNames={s:'spades',h:'hearts',d:'diamonds',c:'clubs'},rankNames={T:'10',J:'Jack',Q:'Queen',K:'King',A:'Ace'};
@@ -47,17 +49,19 @@ function render(){
  return `<div class="seat seat-${i} ${p.folded?'folded':''} ${game.actor===i&&!paused?'active':''}" aria-label="${p.name}, ${p.style}, ${p.stack} chips${p.folded?', folded':''}"><div class="cards">${p.hole.map(c=>card(c,!show)).join('')}${i===0?`<button class="hand-info" data-hand-info aria-label="Show hand strength information" aria-expanded="${strengthRevealed}" aria-controls="starting-strength">i</button>`:''}</div><div class="seat-info"><div class="seat-name">${p.name}${badge}</div><div class="seat-style">${i===0?`${Math.round(p.stack/20*10)/10} big blinds`:botStyleHTML(i)}</div><div class="stack">${n(p.stack)}</div></div><div class="seat-action">${p.lastAction||' '}</div></div>`;
  }).join('')+`<div class="board"><div class="pot-label">${done?'Pot awarded':'Total pot'}</div><div class="pot-value">${n(done?game.pot:game.players.reduce((a,p)=>a+p.total,0))}</div><div class="cards">${Array.from({length:5},(_,i)=>card(game.board[i])).join('')}</div><p class="board-caption">${done?'Every hand is another repetition.':game.board.length?'Shared cards · make your best five':'Your two cards are private'}</p></div>`;
  rememberHand(pastHands,game);renderHandHistory($('#past-hands'),pastHands,c=>card(c));
+ turnPanel.capture($('#decision'),game.hand);
  if(paused){$('#decision').innerHTML=`<div class="paused"><h2>${restored?'Welcome back.':'Take your time.'}</h2><p>${storageOk?'Your exact hand is saved here. Resume whenever you are ready.':'This hand is paused. Browser storage is unavailable, so closing this page may lose it.'}</p><button class="primary" data-action="resume">Resume hand</button></div>`;}
  else if(done){
  const change=hero.stack-hero.startStack,review=buildReview(game),winning=game.awards.filter(a=>!a.refund);
  $('#decision').innerHTML=`${winnerHTML(review.result)}<div class="next-hand-actions"><button class="primary" data-action="next">Deal next hand <span aria-hidden="true">→</span></button></div>${rankingHTML(review.result,card)}<div class="review compact-review"><div class="review-heading"><h2>Hand review</h2><span class="review-net ${change>=0?'positive':''}">${change>=0?'+':''}${n(change)}</span></div><p><strong>${review.comparison.result}</strong> · You: ${review.hands[0].rank}</p><p>${review.overall}</p><div class="review-sections"><section><h3>What went well</h3><p>${review.wentWell}</p></section><section><h3>Decisions to revisit</h3><p><strong>${review.cue.tone==='good'?'Next question':review.cue.title}</strong></p><p>${review.cue.tone==='good'?review.cue.next:review.cue.body}</p>${review.cue.tone==='good'?'':`<p>${review.cue.next}</p>`}</section></div>${review.opponent?`<p class="opponent-cue">${review.opponent.name}: ${review.opponent.action} on the ${review.opponent.street}, holding ${review.opponent.rank}. These cards were hidden when you acted.</p>`:''}${streetReviewHTML(review.streets,card)}<p class="review-note">Player rows show the revealed hands. Style describes behavior, not a good/bad grade; a strong final hand alone does not prove good play.</p></div>`;
- }else if(game.actor!==0){$('#decision').innerHTML=`<div class="decision-head"><h2>${hero.folded?'Watch the hand play out.':`${game.players[game.actor].name} is thinking…`}</h2></div><p class="subtle">${hero.folded?'You have folded. Follow the action and see how the pot is won.':'Action moves clockwise. Your controls appear when it is your turn.'}</p><button class="quiet" data-action="step">Next opponent action</button>`;timer=setTimeout(takeBot,850);}
+ }else if(game.actor!==0){$('#decision').innerHTML=turnPanel.waiting(hero.hole,game.board);timer=setTimeout(takeBot,850);}
  else{
  const pot=game.players.reduce((a,p)=>a+p.total,0);const odds=l.call?Math.round(100*l.call/l.callPot):0;
  $('#decision').innerHTML=`<div class="turn-summary"><h2>Your move</h2><p>Pot: <strong>${n(pot)}</strong> · Stack: <strong>${n(hero.stack)}</strong> · ${l.canCheck?'Check for free':`Call <strong>${n(l.call)}</strong> more`}</p></div>${currentHandHTML(hero.hole,game.board)}${actionControlsHTML(l,pot,game.currentBet,hero)}${error?`<p class="error" role="alert">${error}</p>`:''}`;
 
  }
  liveAdvisor($('#decision'),game,0,l,!paused&&!done&&game.actor===0);
+ turnPanel.update($('#decision'),game,0,paused);
  save();$('#announcement').textContent=paused?'Practice paused.':done?'Hand complete. Review available.':game.actor===0?`Your turn. ${l.canCheck?'You can check.':`Call ${l.call} to stay in.`}`:`${game.players[game.actor].name} to act.`;
 }
 function takeBot(){if(paused||game.street==='complete'||game.actor===0)return;const b=botAction(game);act(game,b.type,b.amount);render();}
